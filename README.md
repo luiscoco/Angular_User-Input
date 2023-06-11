@@ -92,3 +92,48 @@ Typing the event object reveals a significant objection to passing the entire DO
 
 The next section shows how to use template reference variables to address this problem.
 
+## Get user input from a template reference variable
+There's another way to get the user data: use Angular template reference variables. These variables provide direct access to an element from within the template. To declare a template reference variable, precede an identifier with a hash/pound character (#).
+
+The following example uses a template reference variable to implement a keystroke loopback in a simple template.
+
+src/app/loop-back.component.ts
+```typescript
+@Component({
+  selector: 'app-loop-back',
+  template: `
+    <input #box (keyup)="0">
+    <p>{{box.value}}</p>
+  `
+})
+export class LoopbackComponent { }
+```
+
+The template reference variable named box, declared on the input element, refers to the <input> element itself. The code uses the box variable to get the input element's value and display it with interpolation between p tags.
+  
+THIS WON'T WORK AT ALL UNLESS YOU BIND TO AN EVENT.
+Angular updates the bindings and screen only if the app does something in response to asynchronous events, such as keystrokes. This example code binds the keyup event to the number 0, the shortest template statement possible. While the statement does nothing useful, it satisfies Angular's condition so that Angular updates the screen.
+
+It's easier to get to the input box with the template reference variable than to go through the $event object. Here's a rewrite of the previous keyup example that uses a template reference variable to get the user's input.
+
+src/app/keyup.components.ts
+```typescript
+@Component({
+  selector: 'app-key-up2',
+  template: `
+    <input #box (keyup)="onKey(box.value)">
+    <p>{{values}}</p>
+  `
+})
+export class KeyUpComponent_v2 {
+  values = '';
+  onKey(value: string) {
+    this.values += value + ' | ';
+  }
+}
+```
+
+A nice aspect of this approach is that the component gets clean data values from the view. It no longer requires knowledge of the $event and its structure.
+
+
+
