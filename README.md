@@ -135,5 +135,87 @@ export class KeyUpComponent_v2 {
 
 A nice aspect of this approach is that the component gets clean data values from the view. It no longer requires knowledge of the $event and its structure.
 
+## Key event filtering (with key.enter)
+The (keyup) event handler hears every keystroke. Sometimes only the Enter key matters, because it signals that the user has finished typing. One way to reduce the noise would be to examine every $event.keyCode and take action only when the key is Enter.
 
+There's an easier way: bind to Angular's keyup.enter pseudo-event. Then Angular calls the event handler only when the user presses Enter.
 
+src/app/keyup.components.ts
+```typescript
+@Component({
+  selector: 'app-key-up3',
+  template: `
+    <input #box (keyup.enter)="onEnter(box.value)">
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v3 {
+  value = '';
+  onEnter(value: string) { this.value = value; }
+}
+```
+
+## On blur
+In the previous example, the current state of the input box is lost if the user mouses away and clicks elsewhere without first pressing Enter. The component's value property is updated only when the user presses Enter.
+
+To fix this issue, listen to both the Enter key and the blur event.
+
+src/app/keyup.components.ts (v4)
+```typescript
+@Component({
+  selector: 'app-key-up4',
+  template: `
+    <input #box
+      (keyup.enter)="update(box.value)"
+      (blur)="update(box.value)">
+
+    <p>{{value}}</p>
+  `
+})
+export class KeyUpComponent_v4 {
+  value = '';
+  update(value: string) { this.value = value; }
+}
+```
+
+## Put it all together
+This page demonstrated several event binding techniques.
+
+Now, put it all together in a micro-app that can display a list of heroes and add new heroes to the list. The user can add a hero by typing the hero's name in the input box and clicking Add.
+
+Below is the "Little Tour of Heroes" component.
+
+src/app/little-tour.component.ts
+```typescript
+@Component({
+  selector: 'app-little-tour',
+  template: `
+    <input #newHero
+      (keyup.enter)="addHero(newHero.value)"
+      (blur)="addHero(newHero.value); newHero.value='' ">
+
+    <button type="button" (click)="addHero(newHero.value)">Add</button>
+
+    <ul><li *ngFor="let hero of heroes">{{hero}}</li></ul>
+  `
+})
+export class LittleTourComponent {
+  heroes = ['Windstorm', 'Bombasto', 'Magneta', 'Tornado'];
+  addHero(newHero: string) {
+    if (newHero) {
+      this.heroes.push(newHero);
+    }
+  }
+}
+```
+
+## Observations
+
+## Use template variables to refer to elements
+The newHero template variable refers to the input element. You can reference newHero from any sibling or child of the input element.
+
+## Pass values, not elements
+Instead of passing the newHero into the component's addHero method, get the input box value and pass that to addHero.
+
+## Keep template statements simple
+The (blur) event is bound to two JavaScript statements. The first statement calls addHero. The second statement, newHero.value='', clears the input box after a new hero is added to the list.
